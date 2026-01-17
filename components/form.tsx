@@ -1,71 +1,144 @@
 "use client"
+import { IDataConfig } from "@/types";
+import { supabase } from "@/utils/supabase/client";
+import { Form, Button, Alert } from "@heroui/react";
+import { useEffect, useState } from "react";
+import InputField from "./InputField";
 
-import { Form, Input, Button, User } from "@heroui/react";
-import { useState } from "react";
 
-export const InputField = ({ name }: { name: string }) => {
-  return (
-    <div><Input
-      isRequired
-      label={name}
-      labelPlacement="outside"
-      name={name} placeholder="number"
-      type="number"
-      classNames={{ base: 'h-20' }}
-    /></div>
-  )
+function validateField(
+  field: "hour" | "minute" | "duration_sec",
+  value: number
+): string | null {
+  if (Number.isNaN(value)) return "Invalid number";
+  switch (field) {
+    case "hour":
+      if (value < 0 || value > 23) return "Hour 0 to 23";
+      break;
+    case "minute":
+      if (value < 0 || value > 59) return "Minute 0 to 59";
+      break;
+    case "duration_sec":
+      if (value < 0 || value > 60) return "Duration 0 to 60";
+      break;
+  }
+  return null;
 }
 
 
-
 export default function FormInput() {
-  const [errors, setErrors] = useState({});
-  const totalTimeLoop = [1, 2, 3]
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [configTimeData, setConfigTimeData] = useState<IDataConfig[] | []>([]);
+  const [successPopup, setSuccessPopup] = useState(false)
 
-  const onSubmit = (e: any) => {
-    e.preventDefault();
+  useEffect(() => {
+    const getDataTime = async () => {
+      const { data } = await supabase
+        .from("config-time")
+        .select("*")
+        .order("id");
 
-    const data = Object.fromEntries(new FormData(e.currentTarget));
-    console.log(data)
+      if (data) setConfigTimeData(data as IDataConfig[]);
+    };
 
-    const result = callServer(data);
+    getDataTime();
+  }, [])
 
-    // if (!data.length) {
-    //   setErrors(result.errors);
-    // }
 
-    // setErrors(result.errors)
+  const updateRow = (
+    index: number,
+    field: keyof IDataConfig,
+    value: number
+  ) => {
+    setSuccessPopup(false)
+    setConfigTimeData((prev) =>
+      prev.map((row, i) =>
+        i === index ? { ...row, [field]: value } : row
+      )
+    );
+
+    const error = validateField(field as any, value);
+    setErrors((prev) => {
+      const key = `${index}.${field}`;
+      if (error) return { ...prev, [key]: error };
+
+      const { [key]: _, ...rest } = prev;
+      return rest;
+    });
   };
+
+
+  const onSubmit = async () => {
+    const { error } = await supabase
+      .from("config-time")
+      .upsert(configTimeData, { onConflict: "id" });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setSuccessPopup(true)
+  };
+
+
 
   return (
     <Form
       className="w-full flex mx-auto container justify-center items-center flex-col gap-3"
       validationErrors={errors}
-      onSubmit={onSubmit}
-
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
     >
-      {totalTimeLoop.map((index) => <div key={index} className="flex gap-5 items-center">
-        <span>time {index}</span>
-        <InputField name="hour" />
-        <InputField name="minute" />
-        <InputField name="duration_sec" /></div>)}
+      {configTimeData.map((data, i) => (
+        <div key={i} className="flex gap-5 items-center">
+          <span className="w-28 whitespace-nowrap">time {i + 1}</span>
+          <InputField
+            rowIndex={i}
+            field="hour"
+            label="hour"
+            value={data.hour}
+            max={23}
+            error={errors[`${i}.hour`]}
+            onChange={(v) => updateRow(i, "hour", v)}
+          />
 
-      <Button type="submit" variant="flat">
+          <InputField
+            rowIndex={i}
+            field="minute"
+            label="minute"
+            value={data.minute}
+            max={59}
+            error={errors[`${i}.minute`]}
+            onChange={(v) => updateRow(i, "minute", v)}
+          />
+
+          <InputField
+            rowIndex={i}
+            field="duration_sec"
+            label="duration_sec"
+            value={data.duration_sec}
+            max={60}
+            error={errors[`${i}.duration_sec`]}
+            onChange={(v) => updateRow(i, "duration_sec", v)}
+          />
+        </div>
+      ))}
+
+      <Button
+        type="submit"
+        variant="flat"
+        isDisabled={Object.keys(errors).length > 0}
+      >
         Submit
       </Button>
+      {successPopup && <Alert isClosable onClose={() => setSuccessPopup(false)} className="absolute z-50 top-20" color="success" description={'success update'} variant="faded" />
+      }
     </Form>
   );
 }
 
-// Fake server used in this example.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function callServer(data: any) {
-  return {
-    errors: {
-      hour: "please input",
-      minute: "please input",
-      duration_sec: "please input"
-    },
-  };
-}
+
+
 
