@@ -62,6 +62,7 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@eslint/compat": "^1.4.1",
     "@next/eslint-plugin-next": "15.5.9",
     "@react-types/shared": "3.32.1",
     "@tailwindcss/postcss": "4.1.11",
@@ -70,7 +71,7 @@
     "@types/react-dom": "18.3.0",
     "@typescript-eslint/eslint-plugin": "8.34.1",
     "@typescript-eslint/parser": "8.34.1",
-    "eslint": "9.25.1",
+    "eslint": "^9.39.2",
     "eslint-config-next": "15.5.9",
     "eslint-config-prettier": "9.1.0",
     "eslint-plugin-import": "2.31.0",
