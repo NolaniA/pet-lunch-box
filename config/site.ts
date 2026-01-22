@@ -1,8 +1,8 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Pet Lunch Shit",
-  description: "Make beautiful websites regardless of your design experience.",
+  name: "Automate feed your little pet",
+  description: "Make your pet always feed during your vacation!",
   navItems: [
     {
       label: "Home",
@@ -11,8 +11,8 @@ export const siteConfig = {
   ],
   navMenuItems: [
     {
-      label: "Profile",
-      href: "/profile",
+      label: "Home",
+      href: "/",
     }
   ],
   links: {

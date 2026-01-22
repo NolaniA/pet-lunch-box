@@ -32,6 +32,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+
+  const now = new Date().getFullYear()
   return (
     <html suppressHydrationWarning lang="en">
       <head />
@@ -44,11 +46,11 @@ export default function RootLayout({
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
           <div className="relative flex flex-col h-screen">
             <Navbar />
-            <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">
+            <main className="container mx-auto max-w-7xl pt-8 px-6 flex-grow">
               {children}
             </main>
-            <footer className="w-full text-sm flex items-center justify-center py-3">
-            copyright 2026 - Nolania
+            <footer className="w-full text-xs flex items-center justify-center py-3">
+            Copyright © 2025 - {now} all rights reserved by Nolania x Hznut
             </footer>
           </div>
         </Providers>
