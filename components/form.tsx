@@ -1,7 +1,7 @@
 "use client";
 import { IDataConfig } from "@/types";
 import { supabase } from "@/utils/supabase/client";
-import { Form, Button, Alert, Skeleton } from "@heroui/react";
+import { Form, Button, Alert, Skeleton, addToast } from "@heroui/react";
 import { useEffect, useState } from "react";
 import InputField from "./InputField";
 import { ClockIcon } from "./icons";
@@ -27,7 +27,6 @@ function validateField(field: "hour" | "minute" | "duration_sec", value: number)
 export default function FormInput() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [configTimeData, setConfigTimeData] = useState<IDataConfig[] | []>([]);
-  const [successPopup, setSuccessPopup] = useState(false);
 
   useEffect(() => {
     const getDataTime = async () => {
@@ -42,7 +41,6 @@ export default function FormInput() {
   }, []);
 
   const updateRow = (index: number, field: keyof IDataConfig, value: number) => {
-    setSuccessPopup(false);
     setConfigTimeData((prev) => prev.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
 
     const error = validateField(field as any, value);
@@ -62,7 +60,11 @@ export default function FormInput() {
       console.error(error);
       return;
     }
-    setSuccessPopup(true);
+    addToast({
+      title: "Yay! Pet's feeding time set 🐱🍼",
+      description: "new update successfully",
+      color: "success",
+    });
   };
 
   return (
@@ -96,8 +98,6 @@ export default function FormInput() {
           </Button>
         </>
       )}
-
-      {successPopup && <Alert isClosable onClose={() => setSuccessPopup(false)} className="absolute z-50 top-20" color="success" description={"success update"} variant="faded" />}
     </Form>
   );
 }
