@@ -69,7 +69,7 @@ export default function FormInput() {
 
   return (
     <Form
-      className="mx-auto self-stretch items-center relative space-y-1"
+      className="mx-auto self-stretch w-full items-center relative space-y-1"
       validationErrors={errors}
       onSubmit={(e) => {
         e.preventDefault();
@@ -81,7 +81,7 @@ export default function FormInput() {
       ) : (
         <>
           {configTimeData?.map((data, i) => (
-            <div key={i} className="w-full max-w-lg flex justify-between gap-2 md:gap-5 items-center">
+            <div key={i} className="w-full max-w-md flex justify-between gap-2 md:gap-5 items-center">
               <div className="w-24 whitespace-nowrap inline-flex justify-center items-center gap-2 mb-1.5">
                 <span className="block aspect-square h-6">
                   <ClockIcon />
