@@ -151,8 +151,8 @@ export default function AuthPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        // redirectTo: `https://misoza.vercel.app/auth/callback`,
-        redirectTo: `${location.origin}/auth/callback`,
+        redirectTo: `https://misoza.vercel.app/auth/callback`,
+        // redirectTo: `${location.origin}/auth/callback`,
       },
     });
 
