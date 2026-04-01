@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
@@ -7,10 +9,7 @@ import {
   NavbarItem,
   NavbarMenuItem,
 } from "@heroui/navbar";
-import { Button } from "@heroui/button";
-import { Kbd } from "@heroui/kbd";
 import { Link } from "@heroui/link";
-import { Input } from "@heroui/input";
 import { link as linkStyles } from "@heroui/theme";
 import NextLink from "next/link";
 import clsx from "clsx";
@@ -18,15 +17,33 @@ import clsx from "clsx";
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
 import {
-  TwitterIcon,
-  GithubIcon,
-  DiscordIcon,
-  HeartFilledIcon,
-  SearchIcon,
   Logo,
 } from "@/components/icons";
+import {Avatar} from "@heroui/avatar";
+import { Button } from "@heroui/button";
+import { supabase } from "@/utils/supabase/client";
+import { redirect } from "next/navigation";
+import { useEffect, useState } from "react";
+import { User } from "@/types/user";
+
 
 export const Navbar = () => {
+  const [user, setUser] = useState<User | undefined>(undefined)
+
+  useEffect(() => {
+    if(!user){
+
+      const getUser = async () =>{
+
+        const { data } = await supabase.auth.getUser();
+        setUser(data.user as User);
+      };
+      getUser();
+    }
+  }, [user])
+  // console.log("🚀 ~ checkSession ~ data:", user?.email);
+
+
 
   return (
     <HeroUINavbar maxWidth="xl" position="sticky">
@@ -59,36 +76,20 @@ export const Navbar = () => {
         className="hidden sm:flex basis-1/5 sm:basis-full"
         justify="end"
       >
-        <NavbarItem className="hidden sm:flex gap-2">
-          {/* <Link isExternal aria-label="Twitter" href={siteConfig.links.twitter}>
-            <TwitterIcon className="text-default-500" />
-          </Link>
-          <Link isExternal aria-label="Discord" href={siteConfig.links.discord}>
-            <DiscordIcon className="text-default-500" />
-          </Link>
-          <Link isExternal aria-label="Github" href={siteConfig.links.github}>
-            <GithubIcon className="text-default-500" />
-          </Link> */}
+        <NavbarItem className="hidden sm:flex gap-4 items-center" >
+
+          {user?.email && <Button color="danger" variant="ghost" size="sm" onClick={async () => { await supabase.auth.signOut(); window.location.replace("/login");}}>Sign out</Button>}
           <ThemeSwitch />
+          {user?.email &&<Avatar className="" name={user?.email.charAt(0)} size="md" />}
+
         </NavbarItem>
         <NavbarItem className="hidden md:flex">
-          {/* <Button
-            isExternal
-            as={Link}
-            className="text-sm font-normal text-default-600 bg-default-100"
-            href={siteConfig.links.sponsor}
-            startContent={<HeartFilledIcon className="text-danger" />}
-            variant="flat"
-          >
-            Sponsor
-          </Button> */}
+
         </NavbarItem>
       </NavbarContent>
 
       <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
-        <Link isExternal aria-label="Github" href={siteConfig.links.github}>
-          <GithubIcon className="text-default-500" />
-        </Link>
+        <Avatar name="Junior" size="sm"/>
         <ThemeSwitch />
         <NavbarMenuToggle />
       </NavbarContent>
@@ -117,3 +118,4 @@ export const Navbar = () => {
     </HeroUINavbar>
   );
 };
+

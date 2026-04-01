@@ -1,12 +1,13 @@
 "use client";
 import { IDataConfig } from "@/types";
 import { supabase } from "@/utils/supabase/client";
-import { Form, Button, Alert, Skeleton, addToast } from "@heroui/react";
+import { Form, Button, Alert, Skeleton } from "@heroui/react";
 import { useEffect, useState } from "react";
 import InputField from "./InputField";
 import { ClockIcon } from "./icons";
 import { i } from "framer-motion/m";
 import LoadingSkeleton from "./LoadingSkeleton";
+import {addToast, ToastProvider} from "@heroui/toast";
 
 function validateField(field: "hour" | "minute" | "duration_sec", value: number): string | null {
   if (Number.isNaN(value)) return "Invalid number";

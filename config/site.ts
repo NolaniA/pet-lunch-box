@@ -5,13 +5,13 @@ export const siteConfig = {
   description: "Make your pet always feed during your vacation!",
   navItems: [
     {
-      label: "Home",
+      label: "Setting",
       href: "/",
     }
   ],
   navMenuItems: [
     {
-      label: "Home",
+      label: "Setting",
       href: "/",
     }
   ],
