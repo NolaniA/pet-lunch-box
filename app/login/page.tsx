@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { addToast, ToastProvider } from "@heroui/toast";
 import { GithubIcon } from "@/components/icons";
 import { useEffect } from "react";
-import { div } from "framer-motion/m";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 export default function AuthPage() {
@@ -146,23 +145,32 @@ export default function AuthPage() {
   };
 
   const handleOAuthLogin = async (provider: "github" | "google") => {
-    setProviderLoading(provider);
+    try{
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `https://misoza.vercel.app/auth/callback`,
-        // redirectTo: `${location.origin}/auth/callback`,
-      },
-    });
+      setProviderLoading(provider);
 
-    if (error) {
-      addToast({
-        title: "Login social fail",
-        description: error.message,
-        color: "warning",
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          // redirectTo: `https://misoza.vercel.app/auth/callback`,
+          redirectTo: `${location.origin}/auth/callback`,
+        },
       });
-      setProviderLoading(null);
+
+      if (error) {
+        addToast({
+          title: "Login social fail",
+          description: error.message,
+          color: "warning",
+        });
+        setProviderLoading(null);
+      }
+    } catch (err){
+      addToast({
+          title: "Error",
+          description: "Something went wrong",
+          color: "danger",
+        });
     }
   };
 
