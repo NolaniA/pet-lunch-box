@@ -5,7 +5,6 @@ import { Form, Button, Alert, Skeleton } from "@heroui/react";
 import { useEffect, useState } from "react";
 import InputField from "./InputField";
 import { ClockIcon } from "./icons";
-import { i } from "framer-motion/m";
 import LoadingSkeleton from "./LoadingSkeleton";
 import {addToast, ToastProvider} from "@heroui/toast";
 
@@ -31,7 +30,9 @@ export default function FormInput() {
 
   useEffect(() => {
     const getDataTime = async () => {
-      const { data } = await supabase.from("config-time").select("*").order("id");
+
+      const res = await fetch("/api/schedule");
+      const data = await res.json();
 
       if (data) {
         setConfigTimeData(data as IDataConfig[]);
@@ -55,7 +56,7 @@ export default function FormInput() {
   };
 
   const onSubmit = async () => {
-    const { error } = await supabase.from("config-time").upsert(configTimeData, { onConflict: "id" });
+    const { error } = await supabase.from("feed_schedule").upsert(configTimeData, { onConflict: "id" });
 
     if (error) {
       console.error(error);

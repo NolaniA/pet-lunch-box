@@ -5,7 +5,9 @@ export type IconSvgProps = SVGProps<SVGSVGElement> & {
 };
 
 export interface IDataConfig {
-  id?:number
+  id?: number
+  created_at: string;
+  user_id: string;
   hour: number;
   minute: number;
   duration_sec: number;

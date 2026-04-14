@@ -48,24 +48,25 @@ export default function AvatarPopover({ userData }: AvatarPopoverProps) {
               <p className="text-small font-bold text-foreground" {...titleProps}>
                 {userData?.email}
               </p>
+              <div className="relative mb-4 flex items-center pt-3">
+                <div className="flex-grow border-t border-gray-300"></div>
+              </div>
               <ul className="flex flex-col gap-3 mb-4" >
-                  {siteConfig.navItems.map((item) => (
-                    <Link
-
-                      key={item.href}
-                      className="text-foreground hover:text-primary transition"
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </ul>
+                {siteConfig.navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    className="text-foreground hover:text-primary transition"
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </ul>
+              <div className="relative mb-4 flex items-center">
+                <div className="flex-grow border-t border-gray-300"></div>
+              </div>
               <div className="mt-2 relative flex flex-col gap-2 w-full">
-                {/* <Input defaultValue="100%" label="Width" size="sm" variant="bordered" />
-                <Input defaultValue="300px" label="Max. width" size="sm" variant="bordered" />
-                <Input defaultValue="24px" label="Height" size="sm" variant="bordered" />
-                <Input defaultValue="30px" label="Max. height" size="sm" variant="bordered" /> */}
                 <Button
                   color="danger"
                   variant="ghost"
@@ -90,50 +91,46 @@ export const MobilePopover: React.FC<IMobilePopover> = ({ open, setOpen, userDat
   return (
     <>
       {open && (
-        <div className="inset-0 fixed h-screen flex z-[100] md:hidden bg-background justify-center items-center">
-          <div className="flex container max-w-7xl justify-center items-center">
-            <Card style={{ width: 350 }}>
-              <CardBody>
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-small font-bold">{userData?.email}</p>
-                  <Button size="sm" onClick={() => setOpen(false)}>X</Button>
-                </div>
-                <div className="relative mb-4 flex items-center">
-                  <div className="flex-grow border-t border-gray-300"></div>
-                </div>
+        <div className="inset-0 fixed h-screen flex z-[100] md:hidden bg-background justify-center items-staet pt-5">
+          <div className="w-full max-w-md mx-auto bg-background rounded-2xl p-4">
+            <div className="flex justify-between items-center mb-2">
+              <Button size="sm" onClick={() => setOpen(false)}>X</Button>
+              <p className="text-small font-bold">{userData?.email}</p>
+            </div>
+            <div className="relative mb-4 flex items-center">
+              <div className="flex-grow border-t border-gray-300"></div>
+            </div>
 
-                <ul className="flex flex-col gap-3 mb-4">
-                  {siteConfig.navItems.map((item) => (
-                    <Link
+            <ul className="flex flex-col gap-3 mb-4">
+              {siteConfig.navItems.map((item) => (
+                <Link
 
-                      key={item.href}
-                      className="text-foreground hover:text-primary transition"
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </ul>
-                <div className="relative mb-4 flex items-center">
-                  <div className="flex-grow border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center items-center" >
-                  <Button
-                    color="danger"
-                    variant="ghost"
-                    size="sm"
-                    onClick={async () => {
-                      await supabase.auth.signOut();
-                      window.location.replace("/login");
-                    }}
-                    >
-                    Sign out
-                  </Button>
-                </div>
-            </CardBody>
-          </Card>
-        </div>
+                  key={item.href}
+                  className="text-foreground hover:text-primary transition"
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </ul>
+            <div className="relative mb-4 flex items-center">
+              <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center items-center" >
+              <Button
+                color="danger"
+                variant="ghost"
+                size="sm"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.replace("/login");
+                }}
+                >
+                Sign out
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </>
