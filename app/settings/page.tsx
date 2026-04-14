@@ -22,17 +22,18 @@ const Setting = () => {
 
       if (!user) {
         router.push("/login");
-        setLoading(true)
+        return;
       }
 
       if (user) {
+        setLoading(false)
         setUserId(user.id);
         setEmail(user.email || "");
       }
     };
 
     getUser();
-  }, [loading, router]);
+  }, [router]);
 
   if (loading) {
     return <LoadingSkeleton />;

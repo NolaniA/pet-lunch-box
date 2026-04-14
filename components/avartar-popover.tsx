@@ -6,6 +6,7 @@ import { supabase } from "@/utils/supabase/client";
 import { siteConfig } from "@/config/site";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface IMobilePopover {
   open: boolean;
@@ -18,18 +19,19 @@ type AvatarPopoverProps = {
 };
 
 export default function AvatarPopover({ userData }: AvatarPopoverProps) {
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopOpen, setDesktopOpen] = useState(false);
 
   return (
     <>
-      <MobilePopover open={open} setOpen={setOpen} userData={userData} />
-      <Popover showArrow offset={10} placement="bottom" className="hidden md:flex relative w-fit" isOpen={open} onOpenChange={setOpen}>
-        <PopoverTrigger>
+      <MobilePopover open={ mobileOpen } setOpen={ setMobileOpen } userData={userData} />
+      <Popover showArrow offset={10} placement="bottom" className="hidden md:flex relative w-fit" isOpen={ desktopOpen } onOpenChange={ setDesktopOpen }>
+        <PopoverTrigger >
           {userData?.email && (
             <Avatar
               onClick={() => {
               if (window.innerWidth < 768) {
-                setOpen(true);
+                setMobileOpen(true);
               }
             }}
               className=""
@@ -53,7 +55,7 @@ export default function AvatarPopover({ userData }: AvatarPopoverProps) {
                     key={item.href}
                     className="text-foreground hover:text-primary transition"
                     href={item.href}
-                    onClick={() => setOpen(false)}
+                    onClick={() => setDesktopOpen(false)}
                   >
                     {item.label}
                   </Link>
@@ -84,10 +86,12 @@ export default function AvatarPopover({ userData }: AvatarPopoverProps) {
 }
 
 export const MobilePopover: React.FC<IMobilePopover> = ({ open, setOpen, userData }) => {
+  const router = useRouter();
+
   return (
     <>
       {open && (
-        <div className="inset-0 fixed h-screen flex z-[100] md:hidden bg-background justify-center items-staet pt-5">
+        <div className="inset-0 fixed h-screen flex z-[100] md:hidden bg-background justify-center items-start pt-5">
           <div className="w-full max-w-md mx-auto bg-background rounded-2xl p-4">
             <div className="flex justify-between items-center mb-2">
               <Button size="sm" onClick={() => setOpen(false)}>X</Button>
@@ -100,7 +104,6 @@ export const MobilePopover: React.FC<IMobilePopover> = ({ open, setOpen, userDat
             <ul className="flex flex-col gap-3 mb-4">
               {siteConfig.navItems.map((item) => (
                 <Link
-
                   key={item.href}
                   className="text-foreground hover:text-primary transition"
                   href={item.href}
