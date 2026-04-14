@@ -5,16 +5,25 @@ import { supabase } from "@/utils/supabase/client";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { addToast } from "@heroui/toast";
+import { useRouter } from "next/navigation";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 const Setting = () => {
   const [userId, setUserId] = useState<string>("");
   const [email, setEmail] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const getUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        setLoading(true)
+      }
 
       if (user) {
         setUserId(user.id);
@@ -23,7 +32,11 @@ const Setting = () => {
     };
 
     getUser();
-  }, []);
+  }, [loading, router]);
+
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(userId);
@@ -51,11 +64,7 @@ const Setting = () => {
           <div>
             <p className="text-sm text-gray-500">User ID (API Key)</p>
             <div className="flex gap-2 items-center">
-              <input
-                className="w-full border rounded px-2 py-1 text-sm"
-                value={userId}
-                readOnly
-              />
+              <input className="w-full border rounded px-2 py-1 text-sm" value={userId} readOnly />
               <Button size="sm" onClick={copyToClipboard}>
                 Copy
               </Button>
@@ -63,9 +72,7 @@ const Setting = () => {
           </div>
 
           {/* Info */}
-          <div className="text-xs text-gray-500">
-            Use this User ID to connect your device (ESP32) to the API.
-          </div>
+          <div className="text-xs text-gray-500">Use this User ID to connect your device (ESP32) to the API.</div>
         </CardBody>
       </Card>
     </div>

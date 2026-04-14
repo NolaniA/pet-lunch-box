@@ -5,14 +5,14 @@ export const siteConfig = {
   description: "Make your pet always feed during your vacation!",
   navItems: [
     {
-      label: "Setting",
-      href: "/setting",
+      label: "Settings",
+      href: "/settings",
     }
   ],
   navMenuItems: [
     {
-      label: "Setting",
-      href: "/setting",
+      label: "Settings",
+      href: "/settings",
     }
   ],
   links: {

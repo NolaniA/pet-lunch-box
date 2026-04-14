@@ -23,14 +23,10 @@ export default function AvatarPopover({ userData }: AvatarPopoverProps) {
   return (
     <>
       <MobilePopover open={open} setOpen={setOpen} userData={userData} />
-      <Popover showArrow offset={10} placement="bottom" className="hidden md:flex relative w-fit">
+      <Popover showArrow offset={10} placement="bottom" className="hidden md:flex relative w-fit" isOpen={open} onOpenChange={setOpen}>
         <PopoverTrigger>
-          {/* <Button color="primary">Customize</Button> */}
           {userData?.email && (
             <Avatar
-              // onClick={() => {
-              //   setOpen((prev) => !prev);
-              // }}
               onClick={() => {
               if (window.innerWidth < 768) {
                 setOpen(true);
@@ -51,7 +47,7 @@ export default function AvatarPopover({ userData }: AvatarPopoverProps) {
               <div className="relative mb-4 flex items-center pt-3">
                 <div className="flex-grow border-t border-gray-300"></div>
               </div>
-              <ul className="flex flex-col gap-3 mb-4" >
+              <ul className="flex flex-col gap-3 mb-4">
                 {siteConfig.navItems.map((item) => (
                   <Link
                     key={item.href}
