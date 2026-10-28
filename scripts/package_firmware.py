@@ -24,7 +24,8 @@ def build_archive():
             info.create_system = 3
             info.compress_type = ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
-            archive.writestr(info, file.read_bytes())
+            # Match Git LF text on every host, including Windows checkouts.
+            archive.writestr(info, file.read_bytes().replace(b"\r\n", b"\n"))
     return buffer.getvalue()
 
 
