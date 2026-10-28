@@ -1,0 +1,9 @@
+node_modules
+.next
+coverage
+package-lock.json
+/firmware/
+.tools
+.venv
+test-results
+playwright-report

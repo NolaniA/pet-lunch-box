@@ -1,12 +1,26 @@
 @import "tailwindcss";
-
 @plugin '../hero.ts';
-
 @source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
-
 @custom-variant dark (&:is(.dark *));
-
 @theme {
-    --font-sans: "font", sans-serif;
-    --font-mono: "monospace", monospace;
+  --font-sans: "Segoe UI", "Noto Sans", Arial, sans-serif;
+  --font-mono: "Cascadia Code", Consolas, monospace;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  background-image: radial-gradient(
+    ellipse at 85% 0%,
+    color-mix(in srgb, #4c956c 7%, transparent),
+    transparent 45%
+  );
+}
+:focus-visible {
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

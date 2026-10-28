@@ -1,84 +1,77 @@
 "use client";
 
-import {
-  Navbar as HeroUINavbar,
-  NavbarContent,
-  NavbarMenu,
-  NavbarMenuToggle,
-  NavbarBrand,
-  NavbarItem,
-  NavbarMenuItem,
-} from "@heroui/navbar";
-import { Link } from "@heroui/link";
-import { link as linkStyles } from "@heroui/theme";
-import NextLink from "next/link";
-import clsx from "clsx";
-
-import { siteConfig } from "@/config/site";
-import { ThemeSwitch } from "@/components/theme-switch";
-import {
-  Logo,
-} from "@/components/icons";
-import {Avatar} from "@heroui/avatar";
-import { Button } from "@heroui/button";
-import { supabase } from "@/utils/supabase/client";
-import { redirect } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { User } from "@/types/user";
-import AvatarPopover from "./avartar-popover";
+import type { User } from "@supabase/supabase-js";
+import { PawPrint } from "lucide-react";
+import { ThemeSwitch } from "@/components/theme-switch";
+import AvatarPopover from "@/components/avatar-popover";
+import { siteConfig } from "@/config/site";
+import { getSupabaseClient } from "@/utils/supabase/client";
+import { isSupabaseConfigured } from "@/utils/supabase/config";
 
-
-export const Navbar = () => {
-  const [user, setUser] = useState<User | undefined>(undefined)
-
+export function Navbar() {
+  const pathname = usePathname();
+  const [user, setUser] = useState<User | null>(null);
   useEffect(() => {
-    if(!user){
-
-      const getUser = async () =>{
-
-        const { data } = await supabase.auth.getUser();
-        setUser(data.user as User);
-      };
-      getUser();
-    }
-  }, [])
-  // }, [user])
-
-
-
+    if (!isSupabaseConfigured()) return;
+    const supabase = getSupabaseClient();
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (active) setUser(data.user);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) =>
+      setUser(session?.user ?? null),
+    );
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+  const navItems = user ? siteConfig.navItems : siteConfig.publicNavItems;
+  const isActive = (href: string) =>
+    pathname === href || (!user && pathname === "/" && href === "/about");
   return (
-    <HeroUINavbar maxWidth="xl" position="sticky">
-      <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
-        <NavbarBrand as="li" className="gap-3 max-w-fit">
-          <NextLink className="flex justify-start items-center gap-1" href="/">
-            <Logo />
-            <p className="font-bold text-inherit">PET LUNCHBOX</p>
-          </NextLink>
-        </NavbarBrand>
-      </NavbarContent>
-
-      <NavbarContent
-        className="hidden sm:flex basis-1/5 sm:basis-full"
-        justify="end"
-      >
-        <NavbarItem className="hidden sm:flex gap-4 items-center" >
-
+    <header className="sticky top-0 z-40 border-b border-default-200 bg-background/90 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-8">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 font-semibold tracking-tight"
+        >
+          <span className="rounded-xl bg-primary/10 p-2 text-primary">
+            <PawPrint size={20} aria-hidden />
+          </span>
+          Pet Lunch Box
+        </Link>
+        <div className="flex items-center gap-3 sm:order-last">
           <ThemeSwitch />
-          {user?.email && <AvatarPopover userData={user}/>}
-
-        </NavbarItem>
-        <NavbarItem className="hidden md:flex">
-
-        </NavbarItem>
-      </NavbarContent>
-
-      <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
-
-        <ThemeSwitch />
-        {user?.email && <AvatarPopover userData={user}/>}
-      </NavbarContent>
-
-    </HeroUINavbar>
+          {user ? (
+            <AvatarPopover userData={user} />
+          ) : (
+            <Link href="/login" className="text-sm font-medium text-primary">
+              Sign in
+            </Link>
+          )}
+        </div>
+        <nav
+          aria-label="Main navigation"
+          className="order-last flex w-full flex-wrap gap-1 sm:order-none sm:w-auto"
+        >
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive(item.href) ? "page" : undefined}
+              className={`rounded-full px-4 py-2 text-sm transition ${isActive(item.href) ? "bg-primary/10 font-medium text-primary" : "text-default-500 hover:bg-default-100"}`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+    </header>
   );
-};
-
+}

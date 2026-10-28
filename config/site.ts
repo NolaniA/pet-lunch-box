@@ -1,25 +1,24 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Automate feed your little pet",
-  description: "Make your pet always feed during your vacation!",
-  navItems: [
-    {
-      label: "Settings",
-      href: "/settings",
-    }
+  name: "Pet Lunch Box",
+  description:
+    "Manage your feeding schedule and connect your own ESP32-C3 with open-source firmware.",
+  publicNavItems: [
+    { label: "About", href: "/about" },
+    { label: "Firmware", href: "/firmware" },
   ],
-  navMenuItems: [
-    {
-      label: "Settings",
-      href: "/settings",
-    }
+  navItems: [
+    { label: "Schedule", href: "/" },
+    { label: "Device", href: "/settings" },
+    { label: "Firmware", href: "/firmware" },
+    { label: "Guide", href: "/docs" },
   ],
   links: {
-    github: "https://github.com/heroui-inc/heroui",
-    twitter: "https://twitter.com/hero_ui",
-    docs: "https://heroui.com",
-    discord: "https://discord.gg/9b6yyZKmH4",
-    sponsor: "https://patreon.com/jrgarciadev",
+    github: "https://github.com/NolaniA/pet-lunch-box",
+    firmware: "/firmware",
+    firmwareSource: "https://github.com/NolaniA/esp32c3-auto-feed",
+    firmwareDownload: "/downloads/pet-lunch-box-esp32c3-source.zip",
+    docs: "/docs",
   },
 };
