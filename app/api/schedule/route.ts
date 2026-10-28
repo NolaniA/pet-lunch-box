@@ -1,6 +1,8 @@
 import { createClient } from "@/utils/supabase/server";
 import { isSameOrigin, json } from "@/lib/http";
 import { parseSchedule } from "@/lib/schedule";
+import { saveLegacySchedule } from "@/lib/schedule-storage";
+import { isMissingRpc } from "@/lib/supabase-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -52,10 +54,19 @@ export async function PUT(request: Request) {
     const { data, error } = await supabase.rpc("replace_feed_schedule", {
       p_schedule: schedule,
     });
-    if (error)
-      return json({ error: "Unable to save schedule. Try again." }, 503);
+    if (isMissingRpc(error)) {
+      return json(await saveLegacySchedule(supabase, user.id, schedule));
+    }
+    if (error) throw error;
     return json(parseSchedule(data));
-  } catch {
+  } catch (error) {
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? error.code
+        : "unknown";
+    console.error("Schedule save failed", {
+      code: typeof code === "string" ? code.slice(0, 40) : "unknown",
+    });
     return json({ error: "Unable to save schedule. Try again." }, 503);
   }
 }

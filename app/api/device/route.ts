@@ -1,6 +1,7 @@
 import { createDeviceClient } from "@/utils/supabase/device";
 import { json } from "@/lib/http";
 import { parseSchedule } from "@/lib/schedule";
+import { isMissingRpc } from "@/lib/supabase-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -19,10 +20,30 @@ export async function GET(request: Request) {
     return json({ error: "A valid device token is required." }, 401);
   }
   try {
-    const { data, error } = await createDeviceClient().rpc(
-      "get_device_schedule",
-      { p_token: token },
-    );
+    const supabase = createDeviceClient();
+    const { data, error } = await supabase.rpc("get_device_schedule", {
+      p_token: token,
+    });
+    if (isMissingRpc(error)) {
+      // Match the original firmware API on existing databases, with the same
+      // anonymous client and RLS permissions; never use a service-role key.
+      const { data: profile, error: profileError } = await supabase
+        .from("user_data")
+        .select("user_id")
+        .eq("device_token", token)
+        .single();
+      if (profileError && profileError.code !== "PGRST116")
+        return json({ error: "Unable to load schedule." }, 503);
+      if (!profile) return json({ error: "Invalid device token." }, 401);
+      const { data: meals, error: mealsError } = await supabase
+        .from("feed_schedule")
+        .select("hour, minute, duration_sec")
+        .eq("user_id", profile.user_id)
+        .order("hour")
+        .order("minute");
+      if (mealsError) return json({ error: "Unable to load schedule." }, 503);
+      return json(parseSchedule(meals));
+    }
     if (error)
       return json(
         {

@@ -173,3 +173,129 @@ describe("token rotation", () => {
     expect(rpc).toHaveBeenCalledWith("rotate_device_token");
   });
 });
+
+describe("existing database compatibility for device settings", () => {
+  it("reads an ESP schedule through the original token lookup only when its RPC is absent", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "PGRST202" } });
+    const tokenFilter = vi.fn().mockReturnValue({
+      single: vi.fn().mockResolvedValue({
+        data: { user_id: "device-owner" },
+        error: null,
+      }),
+    });
+    const ownerFilter = vi.fn().mockReturnValue({
+      order: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({ data: [meal], error: null }),
+      }),
+    });
+    from.mockImplementation((table: string) =>
+      table === "user_data"
+        ? { select: vi.fn().mockReturnValue({ eq: tokenFilter }) }
+        : { select: vi.fn().mockReturnValue({ eq: ownerFilter }) },
+    );
+    mocks.device.mockReturnValue({ rpc, from });
+    const response = await deviceGet(
+      new Request(`https://feeder.example/api/device?token=${token}`),
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual([meal]);
+    expect(tokenFilter).toHaveBeenCalledWith("device_token", token);
+    expect(ownerFilter).toHaveBeenCalledWith("user_id", "device-owner");
+  });
+
+  it("does not read schedules for a missing legacy token", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "PGRST202" } });
+    from.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi
+            .fn()
+            .mockResolvedValue({ data: null, error: { code: "PGRST116" } }),
+        }),
+      }),
+    });
+    mocks.device.mockReturnValue({ rpc, from });
+    expect(
+      (
+        await deviceGet(
+          new Request(`https://feeder.example/api/device?token=${token}`),
+        )
+      ).status,
+    ).toBe(401);
+    expect(from).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not relax anonymous database permissions for firmware access", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "PGRST202" } });
+    from.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi
+            .fn()
+            .mockResolvedValue({ data: null, error: { code: "42501" } }),
+        }),
+      }),
+    });
+    mocks.device.mockReturnValue({ rpc, from });
+    expect(
+      (
+        await deviceGet(
+          new Request(`https://feeder.example/api/device?token=${token}`),
+        )
+      ).status,
+    ).toBe(503);
+    expect(from).toHaveBeenCalledTimes(1);
+  });
+
+  it("rotates only the verified account's token using its original table permissions", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "PGRST202" } });
+    let generatedToken = "";
+    const accountFilter = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn(async () => ({
+          data: { device_token: generatedToken },
+          error: null,
+        })),
+      }),
+    });
+    const update = vi.fn((value: { device_token: string }) => {
+      generatedToken = value.device_token;
+      return { eq: accountFilter };
+    });
+    from.mockReturnValue({ update });
+    const response = await rotate(
+      new Request("https://feeder.example/api/settings", {
+        method: "POST",
+        headers: { origin: "https://feeder.example" },
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ device_token: generatedToken });
+    expect(generatedToken).toMatch(/^[0-9a-f-]{36}$/);
+    expect(accountFilter).toHaveBeenCalledWith("user_id", "owner");
+    expect(from).toHaveBeenCalledWith("user_data");
+  });
+
+  it("does not claim a token was replaced when the account update was not visible", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "PGRST202" } });
+    from.mockReturnValue({
+      update: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: null,
+              error: { code: "PGRST116" },
+            }),
+          }),
+        }),
+      }),
+    });
+    const response = await rotate(
+      new Request("https://feeder.example/api/settings", {
+        method: "POST",
+        headers: { origin: "https://feeder.example" },
+      }),
+    );
+    expect(response.status).toBe(503);
+  });
+});

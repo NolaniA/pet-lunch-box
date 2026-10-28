@@ -16,7 +16,9 @@ No service-role key is required by the application. Configure email/GitHub auth 
 
 The source web repository did not include its deployed SQL schema, migrations, RLS policies or trigger definitions. The initial migration deliberately uses plain CREATE statements and fails if these tables already exist. It does not guess how to alter a live database.
 
-For a safe upgrade:
+The API remains compatible with the original tables while these new functions are absent. Schedule writes use the authenticated user's existing table permissions, firmware reads use the original token lookup subject to existing anonymous policies, and token rotation updates only the signed-in account. Compatibility is activated only for PostgREST PGRST202; no schema or RLS changes are applied automatically. This path does not make multi-request schedule replacements fully transactional.
+
+For an optional schema upgrade to the transactional RPC design:
 
 1. Back up the database and export the definitions of `user_data`, `feed_schedule`, relevant policies, functions and auth triggers.
 2. Rehearse in a separate Supabase project or database restored from the backup.

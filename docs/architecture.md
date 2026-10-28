@@ -20,15 +20,15 @@ The web app remains at the repository root so its existing Next.js deployment ro
 - Browser clients use the public Supabase anon key and a user session.
 - Server routes verify the account with `auth.getUser()`.
 - Middleware refreshes cookies on protected page entry points; routes independently enforce authorization.
-- Schedule replacement and token rotation derive ownership from `auth.uid()`, never from request JSON.
-- RLS permits authenticated users to read their own records. Browser roles cannot write tables directly.
+- Schedule replacement and token rotation derive ownership from the verified session (and `auth.uid()` inside RPCs), never from request JSON.
+- The new schema grants authenticated users only owner-scoped SELECT access and uses RPCs for writes. Existing installations retain their existing RLS table permissions; compatibility writes remain scoped to the verified account.
 - Security-definer functions have an empty search path, explicit schema qualification and restricted execute grants.
-- The unauthenticated device client receives only schedule fields from `get_device_schedule` after token validation. It has no service-role key and no user cookies.
+- The device client receives only schedule fields after token validation, through the read RPC or the original token/account table filters when the RPC is absent. It has no service-role key and no user cookies.
 - The device API sends `Cache-Control: private, no-store`. New firmware avoids tokens in URLs.
 
 ## Data flow
 
-The dashboard sends a complete schedule to `PUT /api/schedule`. TypeScript validates and sorts it; PostgreSQL validates it again and replaces the account's rows in one transaction under a per-account lock. Device reads observe either the previous committed schedule or the new schedule.
+The dashboard sends a complete schedule to `PUT /api/schedule`. TypeScript validates and sorts it; PostgreSQL validates it again and replaces the account's rows in one transaction under a per-account lock. This transactional path lets device reads observe either the previous committed schedule or the new schedule. Older databases without the RPC use a batch upsert followed by owner-filtered removal and read-back verification. That compatibility path preserves existing permissions and avoids clearing meals before a successful write, but is not transactional across multiple requests.
 
 Firmware polls every 5 minutes and atomically accepts a complete validated response, including `[]`. Failed requests retain the cached schedule. Scheduling runs independently from Wi-Fi after NTP synchronization. No device heartbeat/telemetry is implemented, so the dashboard describes the polling interval without claiming that a device is online or an update is already applied.
 

@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseConfig } from "./config";
 
-// No browser cookies or service-role key: the database RPC validates the device token.
+// Use only the device token and existing database permissions; no user cookies or service-role key.
 export function createDeviceClient() {
   const { url, key } = getSupabaseConfig();
   return createClient(url, key, {

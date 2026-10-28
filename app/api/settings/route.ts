@@ -1,5 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { createClient } from "@/utils/supabase/server";
 import { isSameOrigin, json } from "@/lib/http";
+import { isMissingRpc } from "@/lib/supabase-errors";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +44,18 @@ export async function POST(request: Request) {
     if (authError || !user)
       return json({ error: "Sign in to manage your device." }, 401);
     const { data, error } = await supabase.rpc("rotate_device_token");
+    if (isMissingRpc(error)) {
+      const token = randomUUID();
+      const { data: profile, error: updateError } = await supabase
+        .from("user_data")
+        .update({ device_token: token })
+        .eq("user_id", user.id)
+        .select("device_token")
+        .single();
+      if (updateError || profile?.device_token !== token)
+        return json({ error: "Unable to rotate device token." }, 503);
+      return json({ device_token: token });
+    }
     if (error || !data)
       return json({ error: "Unable to rotate device token." }, 503);
     return json({ device_token: data });

@@ -56,3 +56,12 @@ The final dependency audit has no moderate, high or critical findings. It still 
 - Tabs support mouse/touch, arrow keys, Home and End with standard ARIA tab semantics.
 - The redundant Connection guide and Your device settings links were removed from the firmware footer.
 - Firmware source, GPIO9 and the downloadable source archive were not changed by these UI edits.
+
+## Existing database save compatibility
+
+- The save handler prefers the transactional RPC, with a compatibility path only when PostgREST cannot resolve that function (PGRST202).
+- Regression coverage uses the real Supabase JavaScript client with a local PostgREST test transport backed by isolated PostgreSQL and legacy table RLS.
+- Cases cover the three reported meal rows, exact-time ID matching, adding a database-generated ID, owner-scoped removals, empty schedules, write failures, silent RLS cleanup denial and spoofed IDs/ownership.
+- Device reads and token rotation also retain their original account/token filters when their RPCs are absent, without broadening database permissions.
+- 58 automated tests pass. No production schema or user data was changed during these local tests.
+- Online schema diagnostics were rejected by automatic approval review because the proposed command combined environment retrieval with mutation-capable RPC endpoints. Live data writes were not performed as a workaround.
